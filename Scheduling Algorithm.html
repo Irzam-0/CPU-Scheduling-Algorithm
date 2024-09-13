@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CPU Scheduling Simulator</title>
+
+    <style> 
+
+        body { 
+
+            font-family: Arial, sans-serif; 
+
+            margin: 0; 
+
+            padding: 0; 
+
+            display: flex; 
+
+            justify-content: center; 
+
+            align-items: center; 
+
+            height: 100vh; 
+
+            background-color: #14213d; 
+
+        } 
+
+  
+
+        #container { 
+
+            text-align: center; 
+
+            padding: 50px; 
+
+            border: 10px solid #E5E5E5E5; 
+
+            border-radius: 50px; 
+
+            background-color: #fca311; 
+
+        } 
+
+  
+
+        table { 
+
+            border-collapse: collapse; 
+
+            width: 100%; 
+
+        } 
+
+  
+
+        th, td { 
+
+            border: 3px solid #060a0e; 
+
+            padding: 8px; 
+
+            text-align: left; 
+
+        } 
+
+  
+
+        th { 
+
+            background-color: #73d027; 
+
+        } 
+
+        td { 
+
+            background-color: #d1face; 
+
+        } 
+
+        #algorithm { 
+
+            background-color: #EEEEEE; 
+
+            color: #1b0505;  
+
+            border: 5px solid #000; 
+
+            border-radius: 5px; 
+
+            padding: 5px;  
+
+        } 
+
+        input, select { 
+
+            margin: 5px; 
+
+            padding: 5px; 
+
+            border-radius: 5px; 
+
+            background-color: #FFFFFF; 
+
+            border: 5px solid #0f0e0e; 
+
+        } 
+
+        button { 
+
+            margin: 5px; 
+
+            padding: 5px; 
+
+            border-radius: 7px; 
+
+            background-color: #b1a8af; 
+
+            border: 5px solid #0f0e0e; 
+
+        } 
+
+        /* Additional CSS for Gantt chart representation */
+
+        .gantt {
+
+            display: flex;
+
+            align-items: center;
+
+            margin-top: 10px;
+
+            overflow-x: auto;
+
+        }
+
+ 
+
+        .bar {
+
+            height: 30px;
+
+            background-color: #22BED9;
+
+            border: 1px solid #0b496c;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            margin-right: 5px;
+
+        }
+
+ 
+
+        table {
+
+            width: 100%;
+
+            margin-top: 10px;
+
+            border-collapse: collapse;
+
+        }
+
+ 
+
+        table, th, td {
+
+            border: 1px solid white;
+
+        }
+
+ 
+
+        th, td {
+
+            padding: 8px;
+
+            text-align: center;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div id="container">
+
+        <h1>CPU Scheduling Algorithm</h1>
+
+        <label for="algorithm">Select Scheduling Algorithm:</label>
+
+        <select id="algorithm" onchange="showAlgorithm()">
+
+            <option value="select">None</option>
+
+            <option value="fcfs">First Come First Serve (FCFS)</option>
+
+            <option value="sjf">Shortest Job First (SJF)</option>
+
+            <option value="rr">Round Robin (RR)</option>
+
+            <option value="priority">Priority Scheduling</option>
+
+        </select>
+
+        <div id="algorithmContent"></div>
+
+    </div>
+
+ 
+
+    <script>
+
+        function showAlgorithm() {
+
+            var algorithm = document.getElementById("algorithm").value;
+
+            var algorithmContent = document.getElementById("algorithmContent");
+
+ 
+
+            switch (algorithm) {
+
+                case "fcfs":
+
+                    algorithmContent.innerHTML = `
+
+                        <h3>First Come First Serve (FCFS)</h3>
+
+                        <label for="fcfsArrival">Enter Arrival Times (comma separated):</label>
+
+                        <input type="text" id="fcfsArrival">
+
+                        <label for="fcfsData">Enter Process Burst Times (comma separated):</label>
+
+                        <input type="text" id="fcfsData">
+
+                        <button onclick="simulateFCFS()">Get Result</button>
+
+                        <div id="fcfsTable"></div>
+
+                        <div id="fcfsGantt" class="gantt"></div>
+
+                    `;
+
+                    break;
+
+                case "sjf":
+
+                    algorithmContent.innerHTML = `
+
+                        <h3>Shortest Job First (SJF)</h3>
+
+                        <label for="sjfArrival">Enter Arrival Times (comma separated):</label>
+
+                        <input type="text" id="sjfArrival">
+
+                        <label for="sjfData">Enter Process Burst Times (comma separated):</label>
+
+                        <input type="text" id="sjfData">
+
+                        <button onclick="simulateSJF()">Get Result</button>
+
+                        <div id="sjfTable"></div>
+
+                        <div id="sjfGantt" class="gantt"></div>
+
+                    `;
+
+                    break;
+
+                case "rr":
+
+                    algorithmContent.innerHTML = `
+
+                        <h3>Round Robin (RR)</h3>
+
+                        <label for="rrArrival">Enter Arrival Times (comma separated):</label>
+
+                        <input type="text" id="rrArrival">
+
+                        <label for="rrData">Enter Process Burst Times (comma separated):</label>
+
+                        <input type="text" id="rrData">
+
+                        <label for="rrQuantum">Enter Time Quantum:</label>
+
+                        <input type="number" id="rrQuantum">
+
+                        <button onclick="simulateRR()">Get Result</button>
+
+                        <div id="rrTable"></div>
+
+                        <div id="rrGantt" class="gantt"></div>
+
+                    `;
+
+                    break;
+
+                case "priority":
+
+                    algorithmContent.innerHTML = `
+
+                        <h3>Priority Scheduling</h3>
+
+                        <label for="priorityArrival">Enter Arrival Times (comma separated):</label>
+
+                        <input type="text" id="priorityArrival">
+
+                        <label for="priorityData">Enter Process Burst Times (comma separated):</label>
+
+                        <input type="text" id="priorityData">
+
+                        <label for="priorityPriorities">Enter Process Priorities (comma separated):</label>
+
+                        <input type="text" id="priorityPriorities">
+
+                        <button onclick="simulatePriority()">Get Result</button>
+
+                        <div id="priorityTable"></div>
+
+                        <div id="priorityGantt" class="gantt"></div>
+
+                    `;
+
+                    break;
+
+                default:
+
+                    algorithmContent.innerHTML = "";
+
+                    break;
+
+            }
+
+        }
+
+ 
+
+        function simulateFCFS() {
+
+            var arrivalData = document.getElementById("fcfsArrival").value.split(",").map(Number);
+
+            var burstData = document.getElementById("fcfsData").value.split(",").map(Number);
+
+            var fcfsTable = document.getElementById("fcfsTable");
+
+            var fcfsGantt = document.getElementById("fcfsGantt");
+
+            var tableContent = "<h4>FCFS Schedule</h4><table><tr><th>Process</th><th>Arrival Time</th><th>Burst Time</th><th>Completion Time</th><th>Turnaround Time</th><th>Waiting Time</th></tr>";
+
+            var ganttContent = "<h4>FCFS Gantt Chart</h4><div class='gantt'>";
+
+ 
+
+            var completionTime = 0;
+
+            var totalTurnaroundTime = 0;
+
+            var totalWaitingTime = 0;
+
+ 
+
+            for (var i = 0; i < arrivalData.length; i++) {
+
+                var arrivalTime = arrivalData[i];
+
+                var burstTime = burstData[i];
+
+                var turnaroundTime = completionTime + burstTime - arrivalTime;
+
+                var waitingTime = completionTime - arrivalTime;
+
+                completionTime = completionTime + burstTime;
+
+                totalTurnaroundTime += turnaroundTime;
+
+                totalWaitingTime += waitingTime;
+
+ 
+
+                // Table row
+
+                tableContent += "<tr><td>P" + (i + 1) + "</td><td>" + arrivalTime + "</td><td>" + burstTime + "</td><td>" + completionTime + "</td><td>" + turnaroundTime + "</td><td>" + waitingTime + "</td></tr>";
+
+ 
+
+                // Gantt chart bar
+
+                ganttContent += "<div class='bar' style='width:" + burstTime * 20 + "px;'>P" + (i + 1) + "</div>";
+
+            }
+
+ 
+
+            tableContent += "</table>";
+
+            ganttContent += "</div>";
+
+ 
+
+            fcfsTable.innerHTML = tableContent;
+
+            fcfsGantt.innerHTML = ganttContent;
+
+        }
+
+ 
+
+        function simulateSJF() {
+
+            var arrivalData = document.getElementById("sjfArrival").value.split(",").map(Number);
+
+            var burstData = document.getElementById("sjfData").value.split(",").map(Number);
+
+            var sjfTable = document.getElementById("sjfTable");
+
+            var sjfGantt = document.getElementById("sjfGantt");
+
+            var tableContent = "<h4>SJF Schedule</h4><table><tr><th>Process</th><th>Arrival Time</th><th>Burst Time</th><th>Completion Time</th><th>Turnaround Time</th><th>Waiting Time</th></tr>";
+
+            var ganttContent = "<h4>SJF Gantt Chart</h4><div class='gantt'>";
+
+ 
+
+            var processes = arrivalData.map((arrival, index) => ({
+
+                index: index,
+
+                arrival: arrival,
+
+                burst: burstData[index],
+
+                completed: false
+
+            }));
+
+ 
+
+            var currentTime = 0;
+
+            var completedProcesses = 0;
+
+            var totalTurnaroundTime = 0;
+
+            var totalWaitingTime = 0;
+
+ 
+
+            while (completedProcesses < processes.length) {
+
+                // Get all processes that have arrived and are not completed
+
+                var availableProcesses = processes.filter(p => p.arrival <= currentTime && !p.completed);
+
+ 
+
+                if (availableProcesses.length > 0) {
+
+                    // Select process with the shortest burst time
+
+                    availableProcesses.sort((a, b) => a.burst - b.burst);
+
+                    var process = availableProcesses[0];
+
+ 
+
+                    var turnaroundTime = currentTime + process.burst - process.arrival;
+
+                    var waitingTime = currentTime - process.arrival;
+
+ 
+
+                    currentTime += process.burst;
+
+                    process.completed = true;
+
+                    completedProcesses++;
+
+                    totalTurnaroundTime += turnaroundTime;
+
+                    totalWaitingTime += waitingTime;
+
+ 
+
+                    // Table row
+
+                    tableContent += "<tr><td>P" + (process.index + 1) + "</td><td>" + process.arrival + "</td><td>" + process.burst + "</td><td>" + currentTime + "</td><td>" + turnaroundTime + "</td><td>" + waitingTime + "</td></tr>";
+
+ 
+
+                    // Gantt chart bar
+
+                    ganttContent += "<div class='bar' style='width:" + process.burst * 20 + "px;'>P" + (process.index + 1) + "</div>";
+
+                } else {
+
+                    currentTime++;
+
+                }
+
+            }
+
+ 
+
+            tableContent += "</table>";
+
+            ganttContent += "</div>";
+
+ 
+
+            sjfTable.innerHTML = tableContent;
+
+            sjfGantt.innerHTML = ganttContent;
+
+        }
+
+ 
+
+        function simulateRR() {
+
+            var arrivalData = document.getElementById("rrArrival").value.split(",").map(Number);
+
+            var burstData = document.getElementById("rrData").value.split(",").map(Number);
+
+            var quantum = parseInt(document.getElementById("rrQuantum").value);
+
+            var rrTable = document.getElementById("rrTable");
+
+            var rrGantt = document.getElementById("rrGantt");
+
+            var tableContent = "<h4>Round Robin Schedule (Quantum = " + quantum + ")</h4><table><tr><th>Process</th><th>Arrival Time</th><th>Burst Time</th><th>Completion Time</th><th>Turnaround Time</th><th>Waiting Time</th></tr>";
+
+            var ganttContent = "<h4>Round Robin Gantt Chart</h4><div class='gantt'>";
+
+ 
+
+            var processes = arrivalData.map((arrival, index) => ({
+
+                index: index,
+
+                arrival: arrival,
+
+                burst: burstData[index],
+
+                remainingBurst: burstData[index],
+
+                completed: false
+
+            }));
+
+ 
+
+            var currentTime = 0;
+
+            var completedProcesses = 0;
+
+            var totalTurnaroundTime = 0;
+
+            var totalWaitingTime = 0;
+
+ 
+
+            while (completedProcesses < processes.length) {
+
+                for (var i = 0; i < processes.length; i++) {
+
+                    var process = processes[i];
+
+ 
+
+                    if (process.remainingBurst > 0) {
+
+                        var executionTime = Math.min(quantum, process.remainingBurst);
+
+                        process.remainingBurst -= executionTime;
+
+                        currentTime += executionTime;
+
+ 
+
+                        if (process.remainingBurst === 0) {
+
+                            var turnaroundTime = currentTime - process.arrival;
+
+                            var waitingTime = turnaroundTime - burstData[i];
+
+ 
+
+                            process.completed = true;
+
+                            completedProcesses++;
+
+                            totalTurnaroundTime += turnaroundTime;
+
+                            totalWaitingTime += waitingTime;
+
+ 
+
+                            // Table row
+
+                            tableContent += "<tr><td>P" + (process.index + 1) + "</td><td>" + process.arrival + "</td><td>" + burstData[i] + "</td><td>" + currentTime + "</td><td>" + turnaroundTime + "</td><td>" + waitingTime + "</td></tr>";
+
+ 
+
+                            // Gantt chart bar
+
+                            ganttContent += "<div class='bar' style='width:" + burstData[i] * 20 + "px;'>P" + (process.index + 1) + "</div>";
+
+                        } else {
+
+                            // Gantt chart bar
+
+                            ganttContent += "<div class='bar' style='width:" + executionTime * 20 + "px;'>P" + (process.index + 1) + "</div>";
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+ 
+
+            tableContent += "</table>";
+
+            ganttContent += "</div>";
+
+ 
+
+            rrTable.innerHTML = tableContent;
+
+            rrGantt.innerHTML = ganttContent;
+
+        }
+
+ 
+
+        function simulatePriority() {
+
+            var arrivalData = document.getElementById("priorityArrival").value.split(",").map(Number);
+
+            var burstData = document.getElementById("priorityData").value.split(",").map(Number);
+
+            var priorityData = document.getElementById("priorityPriorities").value.split(",").map(Number);
+
+            var priorityTable = document.getElementById("priorityTable");
+
+            var priorityGantt = document.getElementById("priorityGantt");
+
+            var tableContent = "<h4>Priority Scheduling Schedule</h4><table><tr><th>Process</th><th>Arrival Time</th><th>Burst Time</th><th>Priority</th><th>Completion Time</th><th>Turnaround Time</th><th>Waiting Time</th></tr>";
+
+            var ganttContent = "<h4>Priority Scheduling Gantt Chart</h4><div class='gantt'>";
+
+ 
+
+            var processes = arrivalData.map((arrival, index) => ({
+
+                index: index,
+
+                arrival: arrival,
+
+                burst: burstData[index],
+
+                priority: priorityData[index],
+
+                completed: false
+
+            }));
+
+ 
+
+            processes.sort((a, b) => a.priority - b.priority);
+
+ 
+
+            var currentTime = 0;
+
+            var completedProcesses = 0;
+
+            var totalTurnaroundTime = 0;
+
+            var totalWaitingTime = 0;
+
+ 
+
+            while (completedProcesses < processes.length) {
+
+                var availableProcesses = processes.filter(p => p.arrival <= currentTime && !p.completed);
+
+ 
+
+                if (availableProcesses.length > 0) {
+
+                    availableProcesses.sort((a, b) => a.priority - b.priority);
+
+                    var process = availableProcesses[0];
+
+ 
+
+                    var turnaroundTime = currentTime + process.burst - process.arrival;
+
+                    var waitingTime = currentTime - process.arrival;
+
+ 
+
+                    currentTime += process.burst;
+
+                    process.completed = true;
+
+                    completedProcesses++;
+
+                    totalTurnaroundTime += turnaroundTime;
+
+                    totalWaitingTime += waitingTime;
+
+ 
+
+                    // Table row
+
+                    tableContent += "<tr><td>P" + (process.index + 1) + "</td><td>" + process.arrival + "</td><td>" + process.burst + "</td><td>" + process.priority + "</td><td>" + currentTime + "</td><td>" + turnaroundTime + "</td><td>" + waitingTime + "</td></tr>";
+
+ 
+
+                    // Gantt chart bar
+
+                    ganttContent += "<div class='bar' style='width:" + process.burst * 20 + "px;'>P" + (process.index + 1) + "</div>";
+
+                } else {
+
+                    currentTime++;
+
+                }
+
+            }
+
+ 
+
+            tableContent += "</table>";
+
+            ganttContent += "</div>";
+
+ 
+
+            priorityTable.innerHTML = tableContent;
+
+            priorityGantt.innerHTML = ganttContent;
+
+        }
+
+    </script>
+
+</body>
+
+</html>
